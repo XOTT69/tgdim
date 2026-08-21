@@ -53,9 +53,9 @@ export async function GET(req: NextRequest) {
       is_multiple: poll.is_multiple,
       closes_at: poll.closes_at,
       created_at: poll.created_at,
-      options: (poll.poll_options ?? []).map((o: { id: string; text: string; votes_count: number }) => ({
+      options: (poll.poll_options ?? []).map((o: { id: string; option_text: string; votes_count: number }) => ({
         id: o.id,
-        text: o.text,
+        text: o.option_text,
         votes_count: o.votes_count,
       })),
       user_voted: !!userVotes[poll.id]?.length,
@@ -98,9 +98,9 @@ export async function POST(req: NextRequest) {
 
     if (pollError) return NextResponse.json({ error: pollError.message }, { status: 500 });
 
-    const options = parsed.data.options.map((text) => ({
+    const options = parsed.data.options.map((optionText) => ({
       poll_id: poll.id,
-      text,
+      option_text: optionText,
       votes_count: 0,
     }));
 
