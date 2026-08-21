@@ -4,16 +4,27 @@ import { isAdmin } from "@/lib/admins";
 import { supabaseServer } from "@/lib/supabase-server";
 import { z } from "zod";
 
-const patchSchema = z.object({
-  status: z.enum(["new", "in_progress", "resolved"]),
+const createSchema = z.object({
+  title: z.string().min(2).max(200),
+  description: z.string().max(2000).optional(),
+  event_date: z.string().datetime(),
+  location: z.string().max(200).optional(),
 });
 
-export async function PATCH(
-  req: NextRequest,
-  { params }: { params: Promise<{ id: string }> }
-) {
+export async function GET() {
+  const supabase = supabaseServer();
+  const { data, error } = await supabase
+    .from("events")
+    .select("*")
+    .gte("event_date", new Date().toISOString())
+    .order("event_date", { ascending: true });
+
+  if (error) return NextResponse.json({ error: error.message }, { status: 500 });
+  return NextResponse.json({ events: data });
+}
+
+export async function POST(req: NextRequest) {
   try {
-    const { id } = await params;
     const initData = req.headers.get("x-telegram-init-data");
     const tgUser = requireTelegramUser(initData);
 
@@ -21,23 +32,20 @@ export async function PATCH(
       return NextResponse.json({ error: "FORBIDDEN" }, { status: 403 });
     }
 
-    const body = await req.json();
-    const parsed = patchSchema.safeParse(body);
+    const parsed = createSchema.safeParse(await req.json());
     if (!parsed.success) {
       return NextResponse.json({ error: parsed.error.flatten() }, { status: 400 });
     }
 
     const supabase = supabaseServer();
     const { data, error } = await supabase
-      .from("issues")
-      .update({ status: parsed.data.status, updated_at: new Date().toISOString() })
-      .eq("id", id)
+      .from("events")
+      .insert({ ...parsed.data, organizer_id: tgUser.id })
       .select()
       .single();
 
     if (error) return NextResponse.json({ error: error.message }, { status: 500 });
-
-    return NextResponse.json({ issue: data });
+    return NextResponse.json({ event: data }, { status: 201 });
   } catch (e) {
     const message = e instanceof Error ? e.message : "Unknown error";
     const status = message === "UNAUTHORIZED" ? 401 : 500;

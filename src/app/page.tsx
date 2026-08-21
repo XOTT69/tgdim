@@ -11,23 +11,57 @@ interface Announcement {
   body: string;
 }
 
+const quickLinks = [
+  { href: "/found-lost", label: "Знахідки", icon: "🔑" },
+  { href: "/masters", label: "Майстри", icon: "🛠" },
+  { href: "/help", label: "Допомога", icon: "🤝" },
+  { href: "/events", label: "Події", icon: "📅" },
+];
+
 export default function HomePage() {
   const [issues, setIssues] = useState<Issue[] | null>(null);
   const [announcements, setAnnouncements] = useState<Announcement[] | null>(null);
+  const [error, setError] = useState<string | null>(null);
 
   useEffect(() => {
     fetch("/api/issues")
       .then((r) => r.json())
-      .then((d) => setIssues((d.issues ?? []).filter((i: Issue) => i.status !== "resolved").slice(0, 3)));
+      .then((d) => {
+        if (d.error) throw new Error(d.error);
+        setIssues((d.issues ?? []).filter((i: Issue) => i.status !== "resolved").slice(0, 3));
+      })
+      .catch((err) => setError(err.message));
 
     fetch("/api/announcements")
       .then((r) => r.json())
-      .then((d) => setAnnouncements((d.announcements ?? []).slice(0, 3)));
+      .then((d) => {
+        if (d.error) throw new Error(d.error);
+        setAnnouncements((d.announcements ?? []).slice(0, 3));
+      })
+      .catch((err) => setError(err.message));
   }, []);
+
+  if (error) {
+    return <div className="text-red-500 text-center py-10">{error}</div>;
+  }
 
   return (
     <div className="space-y-6">
       <h1 className="text-2xl font-bold">Наш будинок</h1>
+
+      {/* Quick links to secondary modules */}
+      <section className="grid grid-cols-4 gap-2">
+        {quickLinks.map((link) => (
+          <Link
+            key={link.href}
+            href={link.href}
+            className="flex flex-col items-center bg-white rounded-xl p-3 shadow-sm text-center"
+          >
+            <span className="text-2xl">{link.icon}</span>
+            <span className="text-xs text-gray-600 mt-1">{link.label}</span>
+          </Link>
+        ))}
+      </section>
 
       <section>
         <h2 className="font-semibold text-gray-700 mb-2">📢 Останні оголошення</h2>
@@ -41,7 +75,11 @@ export default function HomePage() {
             </div>
           ))}
         </div>
-        <Link href="/announcements" className="text-blue-600 text-sm">Усі оголошення →</Link>
+        {announcements && announcements.length > 0 && (
+          <Link href="/announcements" className="text-blue-600 text-sm mt-2 inline-block">
+            Усі оголошення →
+          </Link>
+        )}
       </section>
 
       <section>
@@ -56,7 +94,11 @@ export default function HomePage() {
             </div>
           ))}
         </div>
-        <Link href="/issues" className="text-blue-600 text-sm">Усі проблеми →</Link>
+        {issues && issues.length > 0 && (
+          <Link href="/issues" className="text-blue-600 text-sm mt-2 inline-block">
+            Усі проблеми →
+          </Link>
+        )}
       </section>
     </div>
   );

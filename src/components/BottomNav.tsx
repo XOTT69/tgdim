@@ -17,13 +17,15 @@ export default function BottomNav() {
   return (
     <nav className="fixed bottom-0 left-0 right-0 bg-white border-t border-gray-200 flex justify-around py-2 max-w-md mx-auto">
       {items.map((item) => {
-        const active = pathname === item.href;
+        const active = pathname === item.href || pathname.startsWith(item.href + "/");
+        const isHome = item.href === "/";
+        const isActive = isHome ? pathname === "/" : active;
         return (
           <Link
             key={item.href}
             href={item.href}
             className={`flex flex-col items-center text-xs px-2 py-1 min-w-[56px] ${
-              active ? "text-blue-600 font-semibold" : "text-gray-500"
+              isActive ? "text-blue-600 font-semibold" : "text-gray-500"
             }`}
           >
             <span className="text-lg">{item.icon}</span>
