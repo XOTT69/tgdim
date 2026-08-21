@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect, useState } from "react";
+import Link from "next/link";
 import Loader from "@/components/Loader";
 import EmptyState from "@/components/EmptyState";
 import BackButton from "@/components/BackButton";
@@ -45,7 +46,15 @@ export default function MastersPage() {
   return (
     <div className="space-y-3">
       <BackButton />
-      <h1 className="text-xl font-bold">🛠 Майстри</h1>
+      <div className="flex justify-between items-center">
+        <h1 className="text-xl font-bold">🛠 Майстри</h1>
+        <Link
+          href="/masters/new"
+          className="bg-blue-600 text-white px-3 py-2 rounded-lg text-sm font-medium"
+        >
+          + Додати
+        </Link>
+      </div>
 
       {masters.length === 0 && <EmptyState text="Рекомендацій поки немає" />}
 
@@ -73,6 +82,7 @@ export default function MastersPage() {
           </div>
         );
       })}
+      <div className="h-16" />
     </div>
   );
 }

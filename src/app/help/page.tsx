@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect, useState } from "react";
+import Link from "next/link";
 import Loader from "@/components/Loader";
 import EmptyState from "@/components/EmptyState";
 import BackButton from "@/components/BackButton";
@@ -40,7 +41,15 @@ export default function HelpPage() {
   return (
     <div className="space-y-3">
       <BackButton />
-      <h1 className="text-xl font-bold">🤝 Допомога</h1>
+      <div className="flex justify-between items-center">
+        <h1 className="text-xl font-bold">🤝 Допомога</h1>
+        <Link
+          href="/help/new"
+          className="bg-blue-600 text-white px-3 py-2 rounded-lg text-sm font-medium"
+        >
+          + Додати
+        </Link>
+      </div>
 
       {posts.length === 0 && <EmptyState text="Поки немає оголошень" />}
 
@@ -68,6 +77,7 @@ export default function HelpPage() {
           </div>
         </div>
       ))}
+      <div className="h-16" />
     </div>
   );
 }

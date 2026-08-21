@@ -58,6 +58,7 @@ export default function EventsPage() {
           )}
         </div>
       ))}
+      <div className="h-16" />
     </div>
   );
 }

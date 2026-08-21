@@ -46,7 +46,7 @@ export default function HomePage() {
   }
 
   return (
-    <div className="space-y-6">
+    <div className="space-y-5">
       <h1 className="text-2xl font-bold">Наш будинок</h1>
 
       {/* Quick links to secondary modules */}
@@ -55,13 +55,21 @@ export default function HomePage() {
           <Link
             key={link.href}
             href={link.href}
-            className="flex flex-col items-center bg-white rounded-xl p-3 shadow-sm text-center"
+            className="flex flex-col items-center bg-white rounded-xl p-3 shadow-sm text-center active:bg-gray-50"
           >
             <span className="text-2xl">{link.icon}</span>
             <span className="text-xs text-gray-600 mt-1">{link.label}</span>
           </Link>
         ))}
       </section>
+
+      {/* Quick action button */}
+      <Link
+        href="/issues/new"
+        className="block w-full bg-blue-600 text-white text-center py-3 rounded-xl font-medium shadow-sm active:bg-blue-700"
+      >
+        + Повідомити про проблему
+      </Link>
 
       <section>
         <h2 className="font-semibold text-gray-700 mb-2">📢 Останні оголошення</h2>
@@ -100,6 +108,9 @@ export default function HomePage() {
           </Link>
         )}
       </section>
+
+      {/* Spacer for bottom nav */}
+      <div className="h-16" />
     </div>
   );
 }
