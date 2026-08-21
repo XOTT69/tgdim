@@ -1,9 +1,10 @@
 "use client";
 
 import { useEffect, useState } from "react";
-import Loader from "@/components/Loader";
+import { SkeletonList } from "@/components/Skeleton";
 import EmptyState from "@/components/EmptyState";
 import BackButton from "@/components/BackButton";
+import { Calendar, MapPin } from "lucide-react";
 
 interface Event {
   id: string;
@@ -11,7 +12,6 @@ interface Event {
   description: string | null;
   event_date: string;
   location: string | null;
-  created_at: string;
 }
 
 export default function EventsPage() {
@@ -28,37 +28,42 @@ export default function EventsPage() {
       .catch(() => setError("Не вдалось завантажити"));
   }, []);
 
-  if (error) return <div className="text-red-500 text-center py-10">{error}</div>;
-  if (events === null) return <Loader />;
+  if (error) return <div className="text-red-500 text-center py-10 text-sm">{error}</div>;
+  if (events === null) return <SkeletonList count={2} />;
 
   return (
-    <div className="space-y-3">
+    <div className="space-y-4">
       <BackButton />
-      <h1 className="text-xl font-bold">📅 Події</h1>
+      <h1 className="text-xl font-bold text-slate-900">📅 Події</h1>
 
       {events.length === 0 && <EmptyState text="Найближчих подій немає" />}
 
-      {events.map((event) => (
-        <div key={event.id} className="bg-white rounded-xl p-4 shadow-sm border border-gray-100">
-          <div className="font-semibold">{event.title}</div>
-          <div className="text-sm text-blue-600 mt-1">
-            📅 {new Date(event.event_date).toLocaleDateString("uk-UA", {
-              weekday: "short",
-              day: "numeric",
-              month: "long",
-              hour: "2-digit",
-              minute: "2-digit",
-            })}
+      <div className="space-y-2.5">
+        {events.map((event) => (
+          <div key={event.id} className="card">
+            <div className="font-semibold text-slate-800">{event.title}</div>
+            <div className="flex items-center gap-1.5 text-blue-600 text-sm mt-1.5">
+              <Calendar size={14} />
+              {new Date(event.event_date).toLocaleDateString("uk-UA", {
+                weekday: "short",
+                day: "numeric",
+                month: "long",
+                hour: "2-digit",
+                minute: "2-digit",
+              })}
+            </div>
+            {event.location && (
+              <p className="text-slate-500 text-xs mt-1.5 flex items-center gap-1">
+                <MapPin size={12} /> {event.location}
+              </p>
+            )}
+            {event.description && (
+              <p className="text-slate-600 text-sm mt-2">{event.description}</p>
+            )}
           </div>
-          {event.location && (
-            <p className="text-gray-500 text-xs mt-1">📍 {event.location}</p>
-          )}
-          {event.description && (
-            <p className="text-gray-700 text-sm mt-2">{event.description}</p>
-          )}
-        </div>
-      ))}
-      <div className="h-16" />
+        ))}
+      </div>
+      <div className="h-4" />
     </div>
   );
 }

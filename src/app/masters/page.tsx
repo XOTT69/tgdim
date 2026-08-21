@@ -2,9 +2,10 @@
 
 import { useEffect, useState } from "react";
 import Link from "next/link";
-import Loader from "@/components/Loader";
+import { SkeletonList } from "@/components/Skeleton";
 import EmptyState from "@/components/EmptyState";
 import BackButton from "@/components/BackButton";
+import { Plus, Star, Phone } from "lucide-react";
 
 interface Master {
   id: string;
@@ -14,7 +15,6 @@ interface Master {
   contact: string | null;
   rating_sum: number;
   rating_count: number;
-  created_at: string;
 }
 
 const CATEGORY_LABELS: Record<string, string> = {
@@ -40,49 +40,56 @@ export default function MastersPage() {
       .catch(() => setError("Не вдалось завантажити"));
   }, []);
 
-  if (error) return <div className="text-red-500 text-center py-10">{error}</div>;
-  if (masters === null) return <Loader />;
+  if (error) return <div className="text-red-500 text-center py-10 text-sm">{error}</div>;
+  if (masters === null) return <SkeletonList count={3} />;
 
   return (
-    <div className="space-y-3">
+    <div className="space-y-4">
       <BackButton />
       <div className="flex justify-between items-center">
-        <h1 className="text-xl font-bold">🛠 Майстри</h1>
+        <h1 className="text-xl font-bold text-slate-900">Майстри</h1>
         <Link
           href="/masters/new"
-          className="bg-blue-600 text-white px-3 py-2 rounded-lg text-sm font-medium"
+          className="flex items-center gap-1.5 bg-blue-500 text-white px-3.5 py-2 rounded-xl text-sm font-medium active:scale-95 transition-transform"
         >
-          + Додати
+          <Plus size={16} />
+          Додати
         </Link>
       </div>
 
       {masters.length === 0 && <EmptyState text="Рекомендацій поки немає" />}
 
-      {masters.map((m) => {
-        const avg = m.rating_count > 0 ? (m.rating_sum / m.rating_count).toFixed(1) : "—";
-        return (
-          <div key={m.id} className="bg-white rounded-xl p-4 shadow-sm border border-gray-100">
-            <div className="flex justify-between items-start">
-              <div>
-                <div className="font-semibold">{m.name}</div>
-                <div className="text-xs text-gray-500">
-                  {CATEGORY_LABELS[m.category] ?? m.category}
+      <div className="space-y-2.5">
+        {masters.map((m) => {
+          const avg = m.rating_count > 0 ? (m.rating_sum / m.rating_count).toFixed(1) : "—";
+          return (
+            <div key={m.id} className="card">
+              <div className="flex items-start justify-between">
+                <div>
+                  <div className="font-semibold text-slate-800 text-sm">{m.name}</div>
+                  <div className="badge bg-slate-100 text-slate-600 mt-1 text-[11px]">
+                    {CATEGORY_LABELS[m.category] ?? m.category}
+                  </div>
+                </div>
+                <div className="flex items-center gap-1 text-sm font-medium text-amber-600">
+                  <Star size={14} fill="currentColor" />
+                  {avg}
+                  <span className="text-slate-400 text-[11px]">({m.rating_count})</span>
                 </div>
               </div>
-              <div className="text-sm font-medium text-yellow-600">
-                ⭐ {avg} ({m.rating_count})
-              </div>
+              {m.description && (
+                <p className="text-slate-500 text-xs mt-2">{m.description}</p>
+              )}
+              {m.contact && (
+                <p className="text-blue-600 text-xs mt-2 flex items-center gap-1">
+                  <Phone size={12} /> {m.contact}
+                </p>
+              )}
             </div>
-            {m.description && (
-              <p className="text-gray-700 text-sm mt-2">{m.description}</p>
-            )}
-            {m.contact && (
-              <p className="text-blue-600 text-xs mt-2">📞 {m.contact}</p>
-            )}
-          </div>
-        );
-      })}
-      <div className="h-16" />
+          );
+        })}
+      </div>
+      <div className="h-4" />
     </div>
   );
 }

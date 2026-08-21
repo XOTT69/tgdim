@@ -2,21 +2,22 @@
 
 import Link from "next/link";
 import { usePathname } from "next/navigation";
+import { Home, Wrench, Megaphone, Vote, User } from "lucide-react";
 
 const items = [
-  { href: "/", label: "Головна", icon: "🏠" },
-  { href: "/issues", label: "Проблеми", icon: "🔧" },
-  { href: "/announcements", label: "Оголошення", icon: "📢" },
-  { href: "/polls", label: "Голосування", icon: "🗳" },
-  { href: "/profile", label: "Профіль", icon: "👤" },
+  { href: "/", label: "Головна", Icon: Home },
+  { href: "/issues", label: "Проблеми", Icon: Wrench },
+  { href: "/announcements", label: "Новини", Icon: Megaphone },
+  { href: "/polls", label: "Голосування", Icon: Vote },
+  { href: "/profile", label: "Профіль", Icon: User },
 ];
 
 export default function BottomNav() {
   const pathname = usePathname();
 
   return (
-    <nav className="fixed bottom-0 left-0 right-0 bg-white border-t border-gray-200 z-50">
-      <div className="flex justify-around py-2 px-1 max-w-md mx-auto safe-bottom">
+    <nav className="fixed bottom-0 left-0 right-0 bg-white/95 backdrop-blur-lg border-t border-slate-200/60 z-50">
+      <div className="flex justify-around items-center py-1.5 px-2 max-w-md mx-auto safe-bottom">
         {items.map((item) => {
           const isHome = item.href === "/";
           const isActive = isHome
@@ -26,12 +27,18 @@ export default function BottomNav() {
             <Link
               key={item.href}
               href={item.href}
-              className={`flex flex-col items-center text-[10px] py-1 px-1 min-w-0 flex-1 ${
-                isActive ? "text-blue-600 font-semibold" : "text-gray-500"
+              className={`flex flex-col items-center py-1 px-2 min-w-0 flex-1 rounded-xl transition-all duration-200 ${
+                isActive
+                  ? "text-blue-600"
+                  : "text-slate-400 active:text-slate-600"
               }`}
             >
-              <span className="text-base leading-none">{item.icon}</span>
-              <span className="mt-0.5 truncate">{item.label}</span>
+              <div className={`relative p-1 rounded-xl transition-all duration-200 ${isActive ? "bg-blue-50" : ""}`}>
+                <item.Icon size={20} strokeWidth={isActive ? 2.5 : 1.8} />
+              </div>
+              <span className={`text-[10px] mt-0.5 transition-all ${isActive ? "font-semibold" : "font-normal"}`}>
+                {item.label}
+              </span>
             </Link>
           );
         })}

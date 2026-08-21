@@ -1,8 +1,9 @@
 "use client";
 
 import { useEffect, useState } from "react";
-import Loader from "@/components/Loader";
+import { SkeletonList } from "@/components/Skeleton";
 import EmptyState from "@/components/EmptyState";
+import { timeAgo } from "@/lib/time-ago";
 
 interface Announcement {
   id: string;
@@ -23,39 +24,37 @@ export default function AnnouncementsPage() {
         if (d.error) setError(d.error);
         else setAnnouncements(d.announcements);
       })
-      .catch(() => setError("Не вдалось завантажити оголошення"));
+      .catch(() => setError("Не вдалось завантажити"));
   }, []);
 
-  if (error) return <div className="text-red-500 text-center py-10">{error}</div>;
-  if (announcements === null) return <Loader />;
+  if (error) return <div className="text-red-500 text-center py-10 text-sm">{error}</div>;
+  if (announcements === null) return <SkeletonList count={3} />;
 
   return (
-    <div className="space-y-3">
-      <h1 className="text-xl font-bold">📢 Оголошення</h1>
+    <div className="space-y-4">
+      <h1 className="text-xl font-bold text-slate-900">📢 Оголошення</h1>
 
       {announcements.length === 0 && <EmptyState text="Оголошень поки немає" />}
 
-      {announcements.map((a) => (
-        <div key={a.id} className="bg-white rounded-xl p-4 shadow-sm border border-gray-100">
-          <div className="font-semibold text-base">{a.title}</div>
-          <p className="text-gray-700 text-sm mt-1 whitespace-pre-line">{a.body}</p>
-          {a.image_url && (
-            // eslint-disable-next-line @next/next/no-img-element
-            <img
-              src={a.image_url}
-              alt={a.title}
-              className="mt-2 rounded-lg max-h-48 w-full object-cover"
-            />
-          )}
-          <div className="text-xs text-gray-400 mt-2">
-            {new Date(a.published_at).toLocaleDateString("uk-UA", {
-              day: "numeric",
-              month: "long",
-              year: "numeric",
-            })}
+      <div className="space-y-2.5">
+        {announcements.map((a) => (
+          <div key={a.id} className="card">
+            <div className="font-semibold text-slate-800">{a.title}</div>
+            <p className="text-slate-600 text-sm mt-1.5 whitespace-pre-line">{a.body}</p>
+            {a.image_url && (
+              // eslint-disable-next-line @next/next/no-img-element
+              <img
+                src={a.image_url}
+                alt={a.title}
+                className="mt-3 rounded-xl max-h-48 w-full object-cover"
+              />
+            )}
+            <p className="text-slate-400 text-[11px] mt-3">{timeAgo(a.published_at)}</p>
           </div>
-        </div>
-      ))}
+        ))}
+      </div>
+
+      <div className="h-4" />
     </div>
   );
 }

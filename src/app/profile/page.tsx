@@ -1,64 +1,150 @@
 "use client";
 
-import { useTelegramWebApp } from "@/lib/use-telegram";
-import Loader from "@/components/Loader";
+import { useEffect, useState } from "react";
+import { useTelegramWebApp, tgFetch } from "@/lib/use-telegram";
+import { SkeletonList } from "@/components/Skeleton";
+import Avatar from "@/components/Avatar";
+import { Building2, Check, LogOut } from "lucide-react";
+
+interface Profile {
+  telegram_id: number;
+  first_name: string;
+  last_name?: string;
+  username?: string;
+  apartment?: string | null;
+}
 
 export default function ProfilePage() {
-  const { user, ready } = useTelegramWebApp();
+  const { user, initData, ready } = useTelegramWebApp();
+  const [profile, setProfile] = useState<Profile | null>(null);
+  const [apartment, setApartment] = useState("");
+  const [saving, setSaving] = useState(false);
+  const [saved, setSaved] = useState(false);
+  const [error, setError] = useState<string | null>(null);
 
-  if (!ready) return <Loader />;
+  useEffect(() => {
+    if (!ready || !initData) return;
+    tgFetch(initData, "/api/profile")
+      .then((r) => r.json())
+      .then((d) => {
+        if (d.profile) {
+          setProfile(d.profile);
+          setApartment(d.profile.apartment || "");
+        }
+      })
+      .catch(() => {});
+  }, [ready, initData]);
+
+  async function handleSave() {
+    if (!initData) return;
+    setSaving(true);
+    setSaved(false);
+    setError(null);
+    try {
+      const res = await tgFetch(initData, "/api/profile", {
+        method: "PATCH",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ apartment: apartment.trim() || undefined }),
+      });
+      const data = await res.json();
+      if (data.error) throw new Error(JSON.stringify(data.error));
+      setProfile(data.profile);
+      setSaved(true);
+      setTimeout(() => setSaved(false), 2000);
+    } catch (err) {
+      setError(err instanceof Error ? err.message : "Помилка збереження");
+    } finally {
+      setSaving(false);
+    }
+  }
+
+  if (!ready) return <SkeletonList count={2} />;
 
   if (!user) {
     return (
-      <div className="text-center py-10 text-gray-500">
-        Відкрийте застосунок через Telegram для автентифікації.
+      <div className="text-center py-16">
+        <div className="w-16 h-16 bg-slate-100 rounded-full flex items-center justify-center mx-auto mb-4">
+          <LogOut size={24} className="text-slate-400" />
+        </div>
+        <p className="text-slate-500 text-sm">
+          Відкрийте застосунок через Telegram
+        </p>
       </div>
     );
   }
 
   return (
-    <div className="space-y-4">
-      <h1 className="text-xl font-bold">👤 Профіль</h1>
+    <div className="space-y-5">
+      <h1 className="text-xl font-bold text-slate-900">Профіль</h1>
 
-      <div className="bg-white rounded-xl p-4 shadow-sm border border-gray-100">
-        <div className="flex items-center gap-3">
-          <div className="w-12 h-12 bg-blue-100 rounded-full flex items-center justify-center text-xl font-bold text-blue-600">
-            {user.first_name.charAt(0)}
-          </div>
-          <div>
-            <div className="font-semibold">{user.first_name}</div>
+      {/* User card */}
+      <div className="card !p-5">
+        <div className="flex items-center gap-4">
+          <Avatar name={user.first_name} size="lg" />
+          <div className="flex-1 min-w-0">
+            <div className="font-semibold text-slate-900 text-lg truncate">
+              {user.first_name}
+            </div>
             {user.username && (
-              <div className="text-sm text-gray-500">@{user.username}</div>
+              <div className="text-sm text-slate-500">@{user.username}</div>
             )}
-            <div className="text-xs text-gray-400">ID: {user.id}</div>
+            <div className="text-xs text-slate-400 mt-0.5">ID: {user.id}</div>
           </div>
         </div>
       </div>
 
-      <div className="bg-white rounded-xl p-4 shadow-sm border border-gray-100 space-y-3">
-        <h2 className="font-semibold text-gray-700">Дані мешканця</h2>
+      {/* Apartment settings */}
+      <div className="card !p-5 space-y-4">
+        <div className="flex items-center gap-2">
+          <Building2 size={18} className="text-blue-500" />
+          <h2 className="font-semibold text-slate-800">Моя квартира</h2>
+        </div>
+
         <div>
-          <label className="block text-sm text-gray-500 mb-1">Під&apos;їзд</label>
+          <label className="block text-sm text-slate-600 mb-1.5">Номер квартири</label>
           <input
             type="text"
-            placeholder="Номер під'їзду"
-            className="w-full border rounded-lg p-3 text-sm"
-            disabled
+            value={apartment}
+            onChange={(e) => setApartment(e.target.value)}
+            placeholder="Напр. 42"
+            className="w-full border border-slate-200 rounded-xl p-3 text-sm bg-slate-50 focus:bg-white"
           />
         </div>
-        <div>
-          <label className="block text-sm text-gray-500 mb-1">Квартира</label>
-          <input
-            type="text"
-            placeholder="Номер квартири"
-            className="w-full border rounded-lg p-3 text-sm"
-            disabled
-          />
-        </div>
-        <p className="text-xs text-gray-400">
-          Редагування профілю буде доступне у наступному оновленні.
-        </p>
+
+        {error && <p className="text-red-500 text-xs">{error}</p>}
+
+        <button
+          onClick={handleSave}
+          disabled={saving}
+          className={`w-full py-3 rounded-xl font-medium text-sm transition-all flex items-center justify-center gap-2 ${
+            saved
+              ? "bg-green-500 text-white"
+              : "bg-blue-500 text-white active:bg-blue-600 disabled:opacity-50"
+          }`}
+        >
+          {saved ? (
+            <>
+              <Check size={16} />
+              Збережено!
+            </>
+          ) : saving ? (
+            "Збереження..."
+          ) : (
+            "Зберегти"
+          )}
+        </button>
       </div>
+
+      {/* Stats */}
+      {profile && (
+        <div className="card !p-4">
+          <p className="text-xs text-slate-400">
+            Зареєстровано: {profile.telegram_id ? "✓" : "–"}
+          </p>
+        </div>
+      )}
+
+      <div className="h-4" />
     </div>
   );
 }
