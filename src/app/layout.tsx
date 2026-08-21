@@ -14,8 +14,8 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
       <head>
         <Script src="https://telegram.org/js/telegram-web-app.js" strategy="beforeInteractive" />
       </head>
-      <body className="bg-[var(--tg-theme-bg-color,#f5f5f5)] min-h-screen pb-16">
-        <main className="max-w-md mx-auto px-4 py-4">{children}</main>
+      <body className="min-h-screen pb-20">
+        <main className="mx-auto max-w-md px-4 py-5">{children}</main>
         <BottomNav />
       </body>
     </html>

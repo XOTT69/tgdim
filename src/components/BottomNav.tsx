@@ -15,14 +15,15 @@ export default function BottomNav() {
   const pathname = usePathname();
 
   return (
-    <nav className="fixed bottom-0 left-0 right-0 bg-white border-t border-gray-200 flex justify-around py-2 max-w-md mx-auto">
+    <nav aria-label="Основна навігація" className="fixed bottom-0 left-0 right-0 z-10 mx-auto flex max-w-md justify-around border-t border-slate-200 bg-white/95 py-2 backdrop-blur">
       {items.map((item) => {
         const active = pathname === item.href;
         return (
           <Link
             key={item.href}
             href={item.href}
-            className={`flex flex-col items-center text-xs px-2 py-1 min-w-[56px] ${
+            aria-current={active ? "page" : undefined}
+            className={`flex min-w-[56px] flex-col items-center rounded-lg px-2 py-1 text-xs ${
               active ? "text-blue-600 font-semibold" : "text-gray-500"
             }`}
           >
