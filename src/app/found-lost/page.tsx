@@ -3,6 +3,7 @@
 import { useEffect, useState } from "react";
 import Loader from "@/components/Loader";
 import EmptyState from "@/components/EmptyState";
+import BackButton from "@/components/BackButton";
 
 interface FoundLostItem {
   id: string;
@@ -39,6 +40,7 @@ export default function FoundLostPage() {
 
   return (
     <div className="space-y-3">
+      <BackButton />
       <h1 className="text-xl font-bold">🔑 Знахідки / Втрати</h1>
 
       {items.length === 0 && <EmptyState text="Поки немає оголошень" />}

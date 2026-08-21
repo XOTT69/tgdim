@@ -4,6 +4,7 @@ import { useState } from "react";
 import { useRouter } from "next/navigation";
 import { useTelegramWebApp, tgFetch } from "@/lib/use-telegram";
 import { CATEGORY_LABELS, IssueCategory } from "@/lib/types";
+import BackButton from "@/components/BackButton";
 
 export default function NewIssuePage() {
   const { initData, ready } = useTelegramWebApp();
@@ -61,6 +62,7 @@ export default function NewIssuePage() {
 
   return (
     <form onSubmit={handleSubmit} className="space-y-4">
+      <BackButton />
       <h1 className="text-xl font-bold">Нова проблема</h1>
 
       <div>
