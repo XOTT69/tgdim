@@ -29,7 +29,7 @@ begin
 exception when duplicate_object then null;
 end $$;
 
-create table public.profiles (
+create table if not exists public.profiles (
   id uuid primary key references auth.users(id) on delete cascade,
   telegram_id bigint not null unique,
   first_name text not null check (char_length(first_name) between 1 and 128),
@@ -44,7 +44,7 @@ create table public.profiles (
   updated_at timestamptz not null default now()
 );
 
-create table public.announcements (
+create table if not exists public.announcements (
   id uuid primary key default gen_random_uuid(),
   title text not null check (char_length(title) between 1 and 200),
   body text not null check (char_length(body) between 1 and 10_000),
@@ -57,7 +57,7 @@ create table public.announcements (
   check (expires_at is null or expires_at > published_at)
 );
 
-create table public.issues (
+create table if not exists public.issues (
   id uuid primary key default gen_random_uuid(),
   category public.issue_category not null,
   location text not null check (char_length(location) between 1 and 200),
@@ -71,7 +71,7 @@ create table public.issues (
   check ((status = 'resolved' and resolved_at is not null) or (status <> 'resolved' and resolved_at is null))
 );
 
-create table public.polls (
+create table if not exists public.polls (
   id uuid primary key default gen_random_uuid(),
   question text not null check (char_length(question) between 1 and 500),
   closes_at timestamptz,
@@ -81,7 +81,7 @@ create table public.polls (
   updated_at timestamptz not null default now()
 );
 
-create table public.poll_options (
+create table if not exists public.poll_options (
   id uuid primary key default gen_random_uuid(),
   poll_id uuid not null references public.polls(id) on delete cascade,
   label text not null check (char_length(label) between 1 and 300),
@@ -89,7 +89,7 @@ create table public.poll_options (
   unique (poll_id, position)
 );
 
-create table public.poll_votes (
+create table if not exists public.poll_votes (
   id uuid primary key default gen_random_uuid(),
   poll_id uuid not null references public.polls(id) on delete cascade,
   option_id uuid not null references public.poll_options(id) on delete cascade,
@@ -98,7 +98,7 @@ create table public.poll_votes (
   unique (poll_id, voter_id)
 );
 
-create table public.found_lost_posts (
+create table if not exists public.found_lost_posts (
   id uuid primary key default gen_random_uuid(),
   type public.found_lost_type not null,
   title text not null check (char_length(title) between 1 and 200),
@@ -112,7 +112,7 @@ create table public.found_lost_posts (
   updated_at timestamptz not null default now()
 );
 
-create table public.masters (
+create table if not exists public.masters (
   id uuid primary key default gen_random_uuid(),
   category text not null check (char_length(category) between 1 and 100),
   name text not null check (char_length(name) between 1 and 200),
@@ -123,7 +123,7 @@ create table public.masters (
   updated_at timestamptz not null default now()
 );
 
-create table public.master_recommendations (
+create table if not exists public.master_recommendations (
   id uuid primary key default gen_random_uuid(),
   master_id uuid not null references public.masters(id) on delete cascade,
   author_id uuid not null references public.profiles(id) on delete cascade,
@@ -135,7 +135,7 @@ create table public.master_recommendations (
   unique (master_id, author_id)
 );
 
-create table public.help_posts (
+create table if not exists public.help_posts (
   id uuid primary key default gen_random_uuid(),
   type public.help_post_type not null,
   title text not null check (char_length(title) between 1 and 200),
@@ -147,7 +147,7 @@ create table public.help_posts (
   updated_at timestamptz not null default now()
 );
 
-create table public.events (
+create table if not exists public.events (
   id uuid primary key default gen_random_uuid(),
   title text not null check (char_length(title) between 1 and 200),
   description text not null check (char_length(description) between 1 and 5_000),
@@ -158,7 +158,7 @@ create table public.events (
   updated_at timestamptz not null default now()
 );
 
-create table public.event_attendees (
+create table if not exists public.event_attendees (
   event_id uuid not null references public.events(id) on delete cascade,
   user_id uuid not null references public.profiles(id) on delete cascade,
   created_at timestamptz not null default now(),
