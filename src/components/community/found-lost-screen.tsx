@@ -1,0 +1,26 @@
+"use client";
+
+import { useState } from "react";
+
+import { AuthRequired } from "@/components/auth/auth-required";
+import { useAuth } from "@/components/auth/auth-provider";
+import { Button } from "@/components/ui/button";
+import { Card } from "@/components/ui/card";
+import { EmptyState } from "@/components/ui/empty-state";
+import { Field, Input, Select, Textarea } from "@/components/ui/form-fields";
+import { ListError, ListLoading } from "@/components/ui/feedback";
+import { SignedImage } from "@/components/ui/signed-image";
+import { formatDate } from "@/lib/domain";
+import { getSupabaseBrowserClient } from "@/lib/supabase/browser";
+import { uploadImage } from "@/lib/storage";
+import { useAsyncData } from "@/hooks/use-async-data";
+import type { FoundLostPost, FoundLostType } from "@/types/database";
+
+export function FoundLostScreen() { return <AuthRequired><FoundLostContent /></AuthRequired>; }
+
+function FoundLostContent() {
+  const { profile } = useAuth(); const [open, setOpen] = useState(false); const [type, setType] = useState<FoundLostType>("found"); const [title, setTitle] = useState(""); const [description, setDescription] = useState(""); const [location, setLocation] = useState(""); const [date, setDate] = useState(""); const [contact, setContact] = useState(""); const [photo, setPhoto] = useState<File | null>(null); const [message, setMessage] = useState<string | null>(null); const [pending, setPending] = useState(false);
+  const posts = useAsyncData(async () => { const client = getSupabaseBrowserClient(); if (!client) throw new Error("Supabase не налаштовано."); const { data, error } = await client.from("found_lost_posts").select("*").order("created_at", { ascending: false }); if (error) throw error; return data as FoundLostPost[]; });
+  async function submit(event: React.FormEvent<HTMLFormElement>) { event.preventDefault(); if (!profile) return; setPending(true); setMessage(null); try { const client = getSupabaseBrowserClient(); if (!client) throw new Error("Supabase не налаштовано."); const imagePath = photo ? await uploadImage("found-lost-images", "found-lost", profile.id, photo) : null; const { error } = await client.from("found_lost_posts").insert({ type, title: title.trim(), description: description.trim(), location: location.trim(), occurred_on: date, contact_method: contact.trim(), image_path: imagePath, author_id: profile.id }); if (error) throw error; setTitle(""); setDescription(""); setLocation(""); setDate(""); setContact(""); setPhoto(null); setOpen(false); setMessage("Публікацію додано."); await posts.refresh(); } catch (cause) { setMessage(cause instanceof Error ? cause.message : "Не вдалося додати публікацію."); } finally { setPending(false); } }
+  return <div className="space-y-4"><div className="flex items-center justify-between gap-3"><p className="text-sm text-[var(--tg-hint-color)]">Ключі, документи та інші речі</p><Button onClick={() => setOpen(!open)}>{open ? "Закрити" : "Додати"}</Button></div>{open ? <Card><form className="space-y-3" onSubmit={submit}><Field label="Тип"><Select onChange={(event) => setType(event.target.value as FoundLostType)} value={type}><option value="found">Знайдено</option><option value="lost">Загублено</option></Select></Field><Field label="Назва"><Input maxLength={200} onChange={(event) => setTitle(event.target.value)} required value={title} /></Field><Field label="Опис"><Textarea maxLength={5000} onChange={(event) => setDescription(event.target.value)} required value={description} /></Field><Field label="Місце"><Input maxLength={200} onChange={(event) => setLocation(event.target.value)} required value={location} /></Field><Field label="Дата"><Input onChange={(event) => setDate(event.target.value)} required type="date" value={date} /></Field><Field label="Як зв’язатися"><Input maxLength={500} onChange={(event) => setContact(event.target.value)} required value={contact} /></Field><Field hint="JPEG, PNG або WebP, до 5 МБ" label="Фото"><Input accept="image/jpeg,image/png,image/webp" onChange={(event) => setPhoto(event.target.files?.[0] ?? null)} type="file" /></Field><Button disabled={pending} type="submit">{pending ? "Додаємо…" : "Опублікувати"}</Button></form></Card> : null}{message ? <p aria-live="polite" className="text-sm text-[var(--tg-link-color)]">{message}</p> : null}{posts.loading ? <ListLoading /> : posts.error ? <ListError message={posts.error} onRetry={posts.refresh} /> : posts.data?.length ? <div className="space-y-3">{posts.data.map((post) => <Card key={post.id}><p className="text-xs font-semibold uppercase text-[var(--tg-link-color)]">{post.type === "found" ? "Знайдено" : "Загублено"}</p><h2 className="mt-1 font-semibold">{post.title}</h2><p className="mt-2 whitespace-pre-wrap text-sm">{post.description}</p>{post.image_path ? <SignedImage alt={`Фото: ${post.title}`} bucket="found-lost-images" path={post.image_path} /> : null}<p className="mt-3 text-sm text-[var(--tg-hint-color)]">{post.location} · {formatDate(post.occurred_on)}</p><p className="mt-1 text-sm">Зв’язок: {post.contact_method}</p></Card>)}</div> : <EmptyState description="Повідомлення про знайдені або загублені речі з’являться тут." icon="🔎" title="Публікацій поки немає" />}</div>;
+}
