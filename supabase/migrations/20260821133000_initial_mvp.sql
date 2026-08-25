@@ -334,15 +334,15 @@ on conflict (id) do update set
   allowed_mime_types = excluded.allowed_mime_types;
 
 create policy "residents upload own issue images" on storage.objects for insert to authenticated with check (
-  bucket_id = 'issue-images' and owner_id = auth.uid() and (storage.foldername(name))[1] = auth.uid()::text
+  bucket_id = 'issue-images' and owner_id::text = auth.uid()::text and (storage.foldername(name))[1] = auth.uid()::text
 );
 create policy "residents view issue images" on storage.objects for select to authenticated using (bucket_id = 'issue-images');
-create policy "owners remove own issue images" on storage.objects for delete to authenticated using (bucket_id = 'issue-images' and owner_id = auth.uid());
+create policy "owners remove own issue images" on storage.objects for delete to authenticated using (bucket_id = 'issue-images' and owner_id::text = auth.uid()::text);
 create policy "admins upload announcement images" on storage.objects for insert to authenticated with check (bucket_id = 'announcement-images' and public.is_admin());
 create policy "residents view announcement images" on storage.objects for select to authenticated using (bucket_id = 'announcement-images');
 create policy "admins manage announcement images" on storage.objects for delete to authenticated using (bucket_id = 'announcement-images' and public.is_admin());
 create policy "residents upload own found lost images" on storage.objects for insert to authenticated with check (
-  bucket_id = 'found-lost-images' and owner_id = auth.uid() and (storage.foldername(name))[1] = auth.uid()::text
+  bucket_id = 'found-lost-images' and owner_id::text = auth.uid()::text and (storage.foldername(name))[1] = auth.uid()::text
 );
 create policy "residents view found lost images" on storage.objects for select to authenticated using (bucket_id = 'found-lost-images');
-create policy "owners remove own found lost images" on storage.objects for delete to authenticated using (bucket_id = 'found-lost-images' and owner_id = auth.uid());
+create policy "owners remove own found lost images" on storage.objects for delete to authenticated using (bucket_id = 'found-lost-images' and owner_id::text = auth.uid()::text);
