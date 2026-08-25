@@ -1,12 +1,33 @@
 -- tgdim MVP schema. Apply with `supabase db push` against a linked project.
 -- The service-role key is used only by the server-side Telegram bootstrap route.
 
-create type public.issue_category as enum (
-  'lighting', 'water', 'waste', 'cleaning', 'doors_intercom', 'parking_territory', 'yard_common_area', 'other'
-);
-create type public.issue_status as enum ('new', 'in_progress', 'resolved');
-create type public.found_lost_type as enum ('lost', 'found');
-create type public.help_post_type as enum ('need_help', 'can_help');
+-- SQL Editor can leave a type behind if a previous manual run stopped early.
+-- These blocks make a fresh or partially started initial setup safe to retry.
+do $$
+begin
+  create type public.issue_category as enum (
+    'lighting', 'water', 'waste', 'cleaning', 'doors_intercom', 'parking_territory', 'yard_common_area', 'other'
+  );
+exception when duplicate_object then null;
+end $$;
+
+do $$
+begin
+  create type public.issue_status as enum ('new', 'in_progress', 'resolved');
+exception when duplicate_object then null;
+end $$;
+
+do $$
+begin
+  create type public.found_lost_type as enum ('lost', 'found');
+exception when duplicate_object then null;
+end $$;
+
+do $$
+begin
+  create type public.help_post_type as enum ('need_help', 'can_help');
+exception when duplicate_object then null;
+end $$;
 
 create table public.profiles (
   id uuid primary key references auth.users(id) on delete cascade,
